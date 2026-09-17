@@ -30,7 +30,7 @@ app.get("/", (req, res) => {
 app.get("/overlay", (req, res) => {
 
     res.sendFile(
-        path.join(__dirname, "subscriber-counter.html")
+        path.join(__dirname, "Sub counter.html")
     );
 
 });
