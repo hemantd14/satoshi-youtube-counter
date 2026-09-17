@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+    * {
+        box-sizing: border-box;
+    }
+
+    html, body {
+        margin: 0;
+        width: 100%;
+        height: 100%;
+        background: transparent;
+        overflow: hidden;
+        font-family: Arial, Helvetica, sans-serif;
+    }
+
+    .container {
+        width: 100%;
+        height: 100%;
+
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .card {
+        min-width: 520px;
+
+        padding: 18px 35px;
+
+        border-radius: 18px;
+
+        background:
+            linear-gradient(
+                135deg,
+                rgba(8, 12, 25, 0.96),
+                rgba(35, 20, 60, 0.96)
+            );
+
+        border: 2px solid rgba(255,255,255,0.75);
+
+        box-shadow:
+            0 0 25px rgba(100,100,255,0.5),
+            inset 0 0 20px rgba(255,255,255,0.04);
+
+        color: white;
+
+        text-align: center;
+    }
+
+    .brand {
+        font-size: 22px;
+        font-weight: 800;
+        letter-spacing: 3px;
+        text-transform: uppercase;
+    }
+
+    .label {
+        margin-top: 5px;
+
+        font-size: 13px;
+        font-weight: 600;
+
+        letter-spacing: 4px;
+
+        opacity: 0.65;
+    }
+
+    .count {
+        margin-top: 7px;
+
+        font-size: 60px;
+        line-height: 1;
+
+        font-weight: 900;
+
+        letter-spacing: 2px;
+
+        text-shadow:
+            0 0 10px rgba(130,150,255,0.8),
+            0 0 25px rgba(100,100,255,0.4);
+    }
+
+    .status {
+        margin-top: 10px;
+
+        font-size: 10px;
+
+        letter-spacing: 2px;
+
+        opacity: 0.45;
+    }
+
+    .pulse {
+        animation: pulse 0.5s ease;
+    }
+
+    @keyframes pulse {
+
+        0% {
+            transform: scale(1);
+        }
+
+        40% {
+            transform: scale(1.12);
+        }
+
+        100% {
+            transform: scale(1);
+        }
+
+    }
+</style>
+
+</head>
+
+<body>
+
+<div class="container">
+
+    <div class="card">
+
+        <div class="brand">
+            SATOSHI'S FRANCHISE
+        </div>
+
+        <div class="label">
+            YOUTUBE SUBSCRIBERS
+        </div>
+
+        <div
+            id="count"
+            class="count"
+        >
+            ---
+        </div>
+
+        <div
+            id="status"
+            class="status"
+        >
+            CONNECTING...
+        </div>
+
+    </div>
+
+</div>
+
+
+<script>
+
+/* =========================================
+   PUT YOUR RENDER API URL HERE
+   ========================================= */
+
+const API_URL =
+    "https://satoshi-youtube-counter.onrender.com/api/youtube/subscribers";
+
+
+/* =========================================
+   SETTINGS
+   ========================================= */
+
+const REFRESH_INTERVAL = 60000; // 60 seconds
+
+
+let previousCount = null;
+
+
+/* =========================================
+   UPDATE SUBSCRIBER COUNT
+   ========================================= */
+
+async function updateSubscribers() {
+
+    try {
+
+        const response = await fetch(
+            API_URL + "?t=" + Date.now(),
+            {
+                cache: "no-store"
+            }
+        );
+
+
+        if (!response.ok) {
+
+            throw new Error(
+                "Server returned " + response.status
+            );
+
+        }
+
+
+        const data = await response.json();
+
+
+        if (
+            typeof data.subscribers !== "number"
+        ) {
+
+            throw new Error(
+                "Invalid subscriber data"
+            );
+
+        }
+
+
+        const countElement =
+            document.getElementById("count");
+
+
+        const formatted =
+            data.subscribers.toLocaleString("en-IN");
+
+
+        countElement.textContent =
+            formatted;
+
+
+        document.getElementById("status")
+            .textContent =
+            "LIVE • UPDATES EVERY 60 SECONDS";
+
+
+        /* Animate when number changes */
+
+        if (
+            previousCount !== null &&
+            data.subscribers !== previousCount
+        ) {
+
+            countElement.classList.remove(
+                "pulse"
+            );
+
+            void countElement.offsetWidth;
+
+            countElement.classList.add(
+                "pulse"
+            );
+
+        }
+
+
+        previousCount =
+            data.subscribers;
+
+
+    } catch (error) {
+
+        console.error(
+            "Subscriber counter error:",
+            error
+        );
+
+
+        document.getElementById("status")
+            .textContent =
+            "CONNECTION ERROR";
+
+    }
+
+}
+
+
+/* =========================================
+   START
+   ========================================= */
+
+updateSubscribers();
+
+
+setInterval(
+    updateSubscribers,
+    REFRESH_INTERVAL
+);
+
+</script>
+
+</body>
+</html>

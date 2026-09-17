@@ -1,4 +1,5 @@
 const express = require("express");
+const path = require("path");
 
 const app = express();
 
@@ -8,22 +9,9 @@ const YOUTUBE_API_KEY = process.env.YOUTUBE_API_KEY;
 const YOUTUBE_CHANNEL_ID = process.env.YOUTUBE_CHANNEL_ID;
 
 
-// ================================
-// CORS
-// ================================
-
-app.use((req, res, next) => {
-    res.header("Access-Control-Allow-Origin", "*");
-    res.header("Access-Control-Allow-Methods", "GET, OPTIONS");
-    res.header("Access-Control-Allow-Headers", "Content-Type");
-
-    next();
-});
-
-
-// ================================
+// ========================================
 // HOME
-// ================================
+// ========================================
 
 app.get("/", (req, res) => {
 
@@ -35,9 +23,22 @@ app.get("/", (req, res) => {
 });
 
 
-// ================================
+// ========================================
+// OBS OVERLAY
+// ========================================
+
+app.get("/overlay", (req, res) => {
+
+    res.sendFile(
+        path.join(__dirname, "subscriber-counter.html")
+    );
+
+});
+
+
+// ========================================
 // YOUTUBE SUBSCRIBER API
-// ================================
+// ========================================
 
 app.get("/api/youtube/subscribers", async (req, res) => {
 
@@ -55,8 +56,10 @@ app.get("/api/youtube/subscribers", async (req, res) => {
         const url =
             "https://www.googleapis.com/youtube/v3/channels" +
             "?part=statistics" +
-            "&id=" + encodeURIComponent(YOUTUBE_CHANNEL_ID) +
-            "&key=" + encodeURIComponent(YOUTUBE_API_KEY);
+            "&id=" +
+            encodeURIComponent(YOUTUBE_CHANNEL_ID) +
+            "&key=" +
+            encodeURIComponent(YOUTUBE_API_KEY);
 
 
         const response = await fetch(url);
@@ -67,7 +70,7 @@ app.get("/api/youtube/subscribers", async (req, res) => {
         if (!response.ok) {
 
             console.error(
-                "YouTube API Error:",
+                "YouTube API error:",
                 data
             );
 
@@ -108,7 +111,7 @@ app.get("/api/youtube/subscribers", async (req, res) => {
     } catch (error) {
 
         console.error(
-            "Server Error:",
+            "Server error:",
             error
         );
 
@@ -122,9 +125,9 @@ app.get("/api/youtube/subscribers", async (req, res) => {
 });
 
 
-// ================================
+// ========================================
 // START SERVER
-// ================================
+// ========================================
 
 app.listen(
     PORT,
