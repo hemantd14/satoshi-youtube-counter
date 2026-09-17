@@ -7,22 +7,50 @@ const PORT = process.env.PORT || 10000;
 const YOUTUBE_API_KEY = process.env.YOUTUBE_API_KEY;
 const YOUTUBE_CHANNEL_ID = process.env.YOUTUBE_CHANNEL_ID;
 
+
+// ================================
+// CORS
+// ================================
+
+app.use((req, res, next) => {
+    res.header("Access-Control-Allow-Origin", "*");
+    res.header("Access-Control-Allow-Methods", "GET, OPTIONS");
+    res.header("Access-Control-Allow-Headers", "Content-Type");
+
+    next();
+});
+
+
+// ================================
+// HOME
+// ================================
+
 app.get("/", (req, res) => {
+
     res.json({
         status: "online",
         service: "Satoshi's Franchise YouTube Counter"
     });
+
 });
+
+
+// ================================
+// YOUTUBE SUBSCRIBER API
+// ================================
 
 app.get("/api/youtube/subscribers", async (req, res) => {
 
     try {
 
         if (!YOUTUBE_API_KEY || !YOUTUBE_CHANNEL_ID) {
+
             return res.status(500).json({
                 error: "Server configuration missing"
             });
+
         }
+
 
         const url =
             "https://www.googleapis.com/youtube/v3/channels" +
@@ -30,35 +58,60 @@ app.get("/api/youtube/subscribers", async (req, res) => {
             "&id=" + encodeURIComponent(YOUTUBE_CHANNEL_ID) +
             "&key=" + encodeURIComponent(YOUTUBE_API_KEY);
 
+
         const response = await fetch(url);
 
         const data = await response.json();
 
+
         if (!response.ok) {
-            console.error(data);
+
+            console.error(
+                "YouTube API Error:",
+                data
+            );
 
             return res.status(500).json({
                 error: "YouTube API request failed"
             });
+
         }
 
+
         if (!data.items || data.items.length === 0) {
+
             return res.status(404).json({
                 error: "Channel not found"
             });
+
         }
 
-        const statistics = data.items[0].statistics;
+
+        const statistics =
+            data.items[0].statistics;
+
 
         res.json({
-            subscribers: Number(statistics.subscriberCount),
-            hidden: statistics.hiddenSubscriberCount || false,
-            updatedAt: new Date().toISOString()
+
+            subscribers:
+                Number(statistics.subscriberCount),
+
+            hidden:
+                statistics.hiddenSubscriberCount || false,
+
+            updatedAt:
+                new Date().toISOString()
+
         });
+
 
     } catch (error) {
 
-        console.error(error);
+        console.error(
+            "Server Error:",
+            error
+        );
+
 
         res.status(500).json({
             error: "Internal server error"
@@ -68,6 +121,19 @@ app.get("/api/youtube/subscribers", async (req, res) => {
 
 });
 
-app.listen(PORT, "0.0.0.0", () => {
-    console.log(`Server running on port ${PORT}`);
-});
+
+// ================================
+// START SERVER
+// ================================
+
+app.listen(
+    PORT,
+    "0.0.0.0",
+    () => {
+
+        console.log(
+            `Server running on port ${PORT}`
+        );
+
+    }
+);
