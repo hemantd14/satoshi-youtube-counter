@@ -385,29 +385,24 @@ async function findActiveBroadcast() {
    No YOUTUBE_API_KEY is used.
 */
 
+/* =========================================================
+   FETCH SATOSHI'S FRANCHISE SUBSCRIBERS
+   ========================================================= */
 async function fetchSubscribers() {
-
     const client =
         getAuthenticatedClient();
 
-
     if (!client) {
-
         throw new Error(
             "YouTube OAuth is not configured"
         );
-
     }
 
-
     if (!YOUTUBE_CHANNEL_ID) {
-
         throw new Error(
             "YOUTUBE_CHANNEL_ID is not configured"
         );
-
     }
-
 
     const youtube =
         google.youtube({
@@ -415,83 +410,99 @@ async function fetchSubscribers() {
             auth: client
         });
 
-
     const response =
         await youtube.channels.list({
-
             part: [
                 "snippet",
                 "statistics"
             ],
-
             id: [
                 YOUTUBE_CHANNEL_ID
             ]
-
         });
 
+    console.log(
+        "================================="
+    );
+
+    console.log(
+        "YOUTUBE CHANNEL API RESPONSE:"
+    );
+
+    console.log(
+        JSON.stringify(
+            response.data,
+            null,
+            2
+        )
+    );
+
+    console.log(
+        "=================================",
+    );
 
     const items =
         response.data.items || [];
 
-
     if (
         items.length === 0
     ) {
-
         throw new Error(
             "Satoshi's Franchise channel not found"
         );
-
     }
-
 
     const channel =
         items[0];
 
-
-    /*
-       Safety check.
-
-       Make sure the returned channel is
-       exactly the requested channel.
-    */
-
-    if (
-        channel.id !==
-        YOUTUBE_CHANNEL_ID
-    ) {
-
-        throw new Error(
-            "YouTube returned an unexpected channel"
-        );
-
-    }
-
-
     console.log(
-        "Channel:",
-        channel.snippet?.title || "Unknown"
+        "Channel title:",
+        channel.snippet?.title
     );
-
 
     console.log(
         "Channel ID:",
         channel.id
     );
 
+    console.log(
+        "Statistics:",
+        channel.statistics
+    );
 
     console.log(
-        "Subscribers:",
+        "Subscriber count:",
         channel.statistics?.subscriberCount
     );
 
-
-    return Number(
-        channel.statistics
-            ?.subscriberCount || 0
+    console.log(
+        "Hidden subscriber count:",
+        channel.statistics?.hiddenSubscriberCount
     );
 
+    if (
+        channel.id !==
+        YOUTUBE_CHANNEL_ID
+    ) {
+        throw new Error(
+            "YouTube returned an unexpected channel"
+        );
+    }
+
+    if (
+        channel.statistics?.subscriberCount ===
+        undefined ||
+        channel.statistics?.subscriberCount ===
+        null
+    ) {
+        throw new Error(
+            "YouTube did not return subscriberCount"
+        );
+    }
+
+    return Number(
+        channel.statistics.subscriberCount
+    );
 }
 
 
