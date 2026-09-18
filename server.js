@@ -95,7 +95,7 @@ let likeCache = {
 */
 
 const SUBSCRIBER_POLL_TIME =
-    5 * 60 * 1000;
+    60 * 1000;
 
 const LIVE_POLL_TIME =
     60 * 1000;
