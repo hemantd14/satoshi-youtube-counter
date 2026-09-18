@@ -7,6 +7,18 @@ const PORT = process.env.PORT || 10000;
 
 
 /* =========================================================
+   YOUTUBE CHANNEL CONFIGURATION
+   ========================================================= */
+
+/*
+   This is the exact Satoshi's Franchise channel ID.
+*/
+
+const YOUTUBE_CHANNEL_ID =
+    process.env.YOUTUBE_CHANNEL_ID;
+
+
+/* =========================================================
    GOOGLE OAUTH CONFIGURATION
    ========================================================= */
 
@@ -43,16 +55,19 @@ let activeVideoId = null;
    ========================================================= */
 
 /*
-   The total likes on the video when the stream is first
-   detected become the baseline.
-
    Example:
 
-   Video has 127 likes when detected
+   Stream video has 127 total likes
+   when detected.
+
    Baseline = 127
 
-   Later video has 132 likes
-   Stream likes = 132 - 127 = 5
+   Later:
+
+   Video = 132 likes
+
+   Stream likes = 132 - 127
+                = 5
 */
 
 let likeBaseline = null;
@@ -79,18 +94,30 @@ let likeCache = {
 
 
 /* =========================================================
-   YOUTUBE CACHE TIME
+   YOUTUBE CACHE
    ========================================================= */
 
 /*
-   OBS can request the API every second.
+   OBS may request our server every second.
 
-   Render only contacts YouTube every 30 seconds.
+   We DO NOT request YouTube every second.
 
-   This prevents unnecessary API requests.
+   YouTube is contacted once every 30 seconds.
 */
 
 const YOUTUBE_CACHE_TIME = 30000;
+
+
+/* =========================================================
+   REFRESH LOCK
+   ========================================================= */
+
+/*
+   Prevents multiple OBS requests from triggering
+   multiple simultaneous YouTube refreshes.
+*/
+
+let refreshPromise = null;
 
 
 /* =========================================================
@@ -121,13 +148,19 @@ function getAuthenticatedClient() {
    ========================================================= */
 
 /*
+   Examples:
+
    0   -> 50
+   1   -> 50
    49  -> 50
+
    50  -> 100
    84  -> 100
    99  -> 100
+
    100 -> 150
    149 -> 150
+
    150 -> 200
 */
 
@@ -149,11 +182,15 @@ function calculateSubscriberGoal(
    ========================================================= */
 
 /*
+   Examples:
+
    0  -> 5
    1  -> 5
    4  -> 5
+
    5  -> 10
    9  -> 10
+
    10 -> 15
 */
 
@@ -182,6 +219,9 @@ app.get("/", (req, res) => {
 
         service:
             "Satoshi's Franchise Stream Counter",
+
+        channelId:
+            YOUTUBE_CHANNEL_ID || "not configured",
 
         features: [
             "YouTube subscribers",
@@ -218,15 +258,21 @@ app.get("/overlay", (req, res) => {
    ========================================================= */
 
 /*
-   Uses the authenticated YouTube account.
+   We use:
 
    broadcastStatus = active
    mine = true
 
-   This automatically finds the stream belonging
-   to the authorized YouTube channel.
+   This finds active broadcasts belonging to
+   the authenticated Google/YouTube account.
 
-   No YOUTUBE_VIDEO_ID is required.
+   Then we verify that the broadcast's channelId
+   matches:
+
+   YOUTUBE_CHANNEL_ID
+
+   This prevents another YouTube channel owned by
+   the same Google account from being selected.
 */
 
 async function findActiveBroadcast() {
@@ -239,6 +285,15 @@ async function findActiveBroadcast() {
 
         throw new Error(
             "YouTube OAuth is not configured"
+        );
+
+    }
+
+
+    if (!YOUTUBE_CHANNEL_ID) {
+
+        throw new Error(
+            "YOUTUBE_CHANNEL_ID is not configured"
         );
 
     }
@@ -267,7 +322,7 @@ async function findActiveBroadcast() {
                 true,
 
             maxResults:
-                5
+                50
 
         });
 
@@ -277,20 +332,27 @@ async function findActiveBroadcast() {
 
 
     /*
-       No active stream
+       Find the active broadcast belonging
+       specifically to Satoshi's Franchise.
     */
 
-    if (
-        items.length === 0
-    ) {
+    const broadcast =
+        items.find(
+            item =>
+                item.snippet?.channelId ===
+                YOUTUBE_CHANNEL_ID
+        );
+
+
+    /*
+       No Satoshi's Franchise stream is live.
+    */
+
+    if (!broadcast) {
 
         return null;
 
     }
-
-
-    const broadcast =
-        items[0];
 
 
     return {
@@ -299,7 +361,10 @@ async function findActiveBroadcast() {
             broadcast.id,
 
         title:
-            broadcast.snippet?.title || ""
+            broadcast.snippet?.title || "",
+
+        channelId:
+            broadcast.snippet?.channelId || ""
 
     };
 
@@ -307,21 +372,17 @@ async function findActiveBroadcast() {
 
 
 /* =========================================================
-   FETCH SUBSCRIBERS
+   FETCH SATOSHI'S FRANCHISE SUBSCRIBERS
    ========================================================= */
 
 /*
    IMPORTANT:
 
-   This uses OAuth instead of an API key.
+   We use the exact channel ID.
 
-   channels.list + mine=true returns the
-   authenticated user's YouTube channel.
+   No API key is required.
 
-   Therefore:
-
-   YOUTUBE_API_KEY       -> NOT NEEDED
-   YOUTUBE_CHANNEL_ID    -> NOT NEEDED
+   No YOUTUBE_API_KEY is used.
 */
 
 async function fetchSubscribers() {
@@ -339,6 +400,15 @@ async function fetchSubscribers() {
     }
 
 
+    if (!YOUTUBE_CHANNEL_ID) {
+
+        throw new Error(
+            "YOUTUBE_CHANNEL_ID is not configured"
+        );
+
+    }
+
+
     const youtube =
         google.youtube({
             version: "v3",
@@ -350,11 +420,13 @@ async function fetchSubscribers() {
         await youtube.channels.list({
 
             part: [
+                "snippet",
                 "statistics"
             ],
 
-            mine:
-                true
+            id: [
+                YOUTUBE_CHANNEL_ID
+            ]
 
         });
 
@@ -368,16 +440,56 @@ async function fetchSubscribers() {
     ) {
 
         throw new Error(
-            "Authenticated YouTube channel not found"
+            "Satoshi's Franchise channel not found"
         );
 
     }
 
 
+    const channel =
+        items[0];
+
+
+    /*
+       Safety check.
+
+       Make sure the returned channel is
+       exactly the requested channel.
+    */
+
+    if (
+        channel.id !==
+        YOUTUBE_CHANNEL_ID
+    ) {
+
+        throw new Error(
+            "YouTube returned an unexpected channel"
+        );
+
+    }
+
+
+    console.log(
+        "Channel:",
+        channel.snippet?.title || "Unknown"
+    );
+
+
+    console.log(
+        "Channel ID:",
+        channel.id
+    );
+
+
+    console.log(
+        "Subscribers:",
+        channel.statistics?.subscriberCount
+    );
+
+
     return Number(
-        items[0]
-            .statistics
-            .subscriberCount || 0
+        channel.statistics
+            ?.subscriberCount || 0
     );
 
 }
@@ -388,7 +500,10 @@ async function fetchSubscribers() {
    ========================================================= */
 
 /*
-   Uses OAuth instead of an API key.
+   Retrieves the total likes for the automatically
+   detected livestream video.
+
+   videos.list statistics.likeCount is used here.
 */
 
 async function fetchVideoLikes(
@@ -403,6 +518,15 @@ async function fetchVideoLikes(
 
         throw new Error(
             "YouTube OAuth is not configured"
+        );
+
+    }
+
+
+    if (!videoId) {
+
+        throw new Error(
+            "Video ID is missing"
         );
 
     }
@@ -447,186 +571,297 @@ async function fetchVideoLikes(
     return Number(
         items[0]
             .statistics
-            .likeCount || 0
+            ?.likeCount || 0
     );
 
 }
 
 
 /* =========================================================
-   REFRESH ALL YOUTUBE DATA
+   REFRESH YOUTUBE DATA
    ========================================================= */
 
 async function refreshYouTubeData() {
 
-    try {
+    /*
+       If another refresh is already running,
+       wait for that refresh instead of starting
+       another one.
+    */
 
-        /* =================================================
-           1. FETCH SUBSCRIBERS
-           ================================================= */
+    if (refreshPromise) {
 
-        const subscribers =
-            await fetchSubscribers();
+        return refreshPromise;
 
-
-        subscriberCache = {
-
-            subscribers:
-                subscribers,
-
-            updatedAt:
-                Date.now()
-
-        };
+    }
 
 
-        /* =================================================
-           2. FIND ACTIVE STREAM
-           ================================================= */
+    refreshPromise =
+        (async () => {
 
-        const broadcast =
-            await findActiveBroadcast();
+            try {
 
+                /* =========================================
+                   1. FETCH SUBSCRIBERS
+                   ========================================= */
 
-        /* =================================================
-           3. NO ACTIVE STREAM
-           ================================================= */
-
-        if (!broadcast) {
-
-            /*
-               Nobody is live.
-
-               Reset stream-specific data.
-            */
-
-            activeVideoId =
-                null;
-
-            likeBaseline =
-                null;
-
-            likeCache = {
-
-                likes: 0,
-
-                updatedAt:
-                    Date.now()
-
-            };
-
-            return;
-
-        }
+                const subscribers =
+                    await fetchSubscribers();
 
 
-        /* =================================================
-           4. NEW STREAM DETECTED
-           ================================================= */
+                subscriberCache = {
 
-        if (
-            activeVideoId !==
-            broadcast.id
-        ) {
+                    subscribers:
+                        subscribers,
 
-            console.log(
-                "New YouTube stream detected:",
-                broadcast.id
-            );
+                    updatedAt:
+                        Date.now()
+
+                };
 
 
-            /*
-               Save the new stream's video ID.
-            */
+                /* =========================================
+                   2. FIND ACTIVE STREAM
+                   ========================================= */
 
-            activeVideoId =
-                broadcast.id;
+                const broadcast =
+                    await findActiveBroadcast();
 
 
-            /*
-               Get the current total likes.
+                /* =========================================
+                   3. NO ACTIVE STREAM
+                   ========================================= */
 
-               This becomes the baseline.
-            */
+                if (!broadcast) {
 
-            const startingLikes =
-                await fetchVideoLikes(
-                    activeVideoId
+                    /*
+                       There is currently no live stream.
+
+                       Reset stream-specific data.
+                    */
+
+                    activeVideoId =
+                        null;
+
+                    likeBaseline =
+                        null;
+
+                    likeCache = {
+
+                        likes: 0,
+
+                        updatedAt:
+                            Date.now()
+
+                    };
+
+
+                    console.log(
+                        "No active Satoshi's Franchise stream."
+                    );
+
+
+                    return;
+
+                }
+
+
+                /* =========================================
+                   4. NEW STREAM DETECTED
+                   ========================================= */
+
+                if (
+                    activeVideoId !==
+                    broadcast.id
+                ) {
+
+                    console.log(
+                        "================================="
+                    );
+
+
+                    console.log(
+                        "NEW STREAM DETECTED"
+                    );
+
+
+                    console.log(
+                        "Video ID:",
+                        broadcast.id
+                    );
+
+
+                    console.log(
+                        "Title:",
+                        broadcast.title
+                    );
+
+
+                    console.log(
+                        "Channel ID:",
+                        broadcast.channelId
+                    );
+
+
+                    console.log(
+                        "================================="
+                    );
+
+
+                    /*
+                       Save new video ID.
+                    */
+
+                    activeVideoId =
+                        broadcast.id;
+
+
+                    /*
+                       Get total YouTube likes.
+
+                       This becomes the baseline.
+
+                       Example:
+
+                       Existing likes = 250
+
+                       Baseline = 250
+
+                       Overlay starts:
+
+                       0 / 5
+                    */
+
+                    const startingLikes =
+                        await fetchVideoLikes(
+                            activeVideoId
+                        );
+
+
+                    likeBaseline =
+                        startingLikes;
+
+
+                    /*
+                       Reset stream likes.
+                    */
+
+                    likeCache = {
+
+                        likes: 0,
+
+                        updatedAt:
+                            Date.now()
+
+                    };
+
+
+                    console.log(
+                        "Like baseline:",
+                        likeBaseline
+                    );
+
+
+                    return;
+
+                }
+
+
+                /* =========================================
+                   5. EXISTING ACTIVE STREAM
+                   ========================================= */
+
+                /*
+                   Safety check.
+                */
+
+                if (
+                    likeBaseline === null
+                ) {
+
+                    const startingLikes =
+                        await fetchVideoLikes(
+                            activeVideoId
+                        );
+
+
+                    likeBaseline =
+                        startingLikes;
+
+
+                    likeCache = {
+
+                        likes: 0,
+
+                        updatedAt:
+                            Date.now()
+
+                    };
+
+
+                    return;
+
+                }
+
+
+                /*
+                   Get current total likes.
+                */
+
+                const currentLikes =
+                    await fetchVideoLikes(
+                        activeVideoId
+                    );
+
+
+                /*
+                   Calculate likes gained
+                   during this stream.
+                */
+
+                const streamLikes =
+                    Math.max(
+                        0,
+                        currentLikes -
+                        likeBaseline
+                    );
+
+
+                likeCache = {
+
+                    likes:
+                        streamLikes,
+
+                    updatedAt:
+                        Date.now()
+
+                };
+
+
+                console.log(
+                    "Stream likes:",
+                    streamLikes
                 );
 
 
-            likeBaseline =
-                startingLikes;
+            } catch (error) {
+
+                console.error(
+                    "YouTube refresh error:",
+                    error
+                );
+
+            } finally {
+
+                refreshPromise =
+                    null;
+
+            }
+
+        })();
 
 
-            /*
-               Every new stream starts at:
-
-               0 / 5
-            */
-
-            likeCache = {
-
-                likes: 0,
-
-                updatedAt:
-                    Date.now()
-
-            };
-
-
-            console.log(
-                "Stream like baseline:",
-                likeBaseline
-            );
-
-
-            return;
-
-        }
-
-
-        /* =================================================
-           5. EXISTING ACTIVE STREAM
-           ================================================= */
-
-        const currentLikes =
-            await fetchVideoLikes(
-                activeVideoId
-            );
-
-
-        /*
-           Calculate likes gained during this stream.
-        */
-
-        const streamLikes =
-            Math.max(
-                0,
-                currentLikes -
-                likeBaseline
-            );
-
-
-        likeCache = {
-
-            likes:
-                streamLikes,
-
-            updatedAt:
-                Date.now()
-
-        };
-
-
-    } catch (error) {
-
-        console.error(
-            "YouTube refresh error:",
-            error
-        );
-
-    }
+    return refreshPromise;
 
 }
 
@@ -642,8 +877,8 @@ app.get(
         try {
 
             /*
-               Refresh only when cache is older
-               than 30 seconds.
+               Refresh YouTube data if the cache
+               is older than 30 seconds.
             */
 
             if (
@@ -715,8 +950,8 @@ app.get(
         try {
 
             /*
-               Refresh only when cache is older
-               than 30 seconds.
+               Refresh YouTube data if the cache
+               is older than 30 seconds.
             */
 
             if (
@@ -795,7 +1030,26 @@ app.listen(
     () => {
 
         console.log(
-            `Server running on port ${PORT}`
+            "================================="
+        );
+
+        console.log(
+            "Satoshi's Franchise Counter"
+        );
+
+        console.log(
+            "Server running on port:",
+            PORT
+        );
+
+        console.log(
+            "Channel ID:",
+            YOUTUBE_CHANNEL_ID ||
+            "NOT CONFIGURED"
+        );
+
+        console.log(
+            "================================="
         );
 
     }
