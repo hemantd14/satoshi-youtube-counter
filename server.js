@@ -7,17 +7,6 @@ const PORT = process.env.PORT || 10000;
 
 
 /* =========================================================
-   YOUTUBE CONFIGURATION
-   ========================================================= */
-
-const YOUTUBE_API_KEY =
-    process.env.YOUTUBE_API_KEY;
-
-const YOUTUBE_CHANNEL_ID =
-    process.env.YOUTUBE_CHANNEL_ID;
-
-
-/* =========================================================
    GOOGLE OAUTH CONFIGURATION
    ========================================================= */
 
@@ -54,19 +43,16 @@ let activeVideoId = null;
    ========================================================= */
 
 /*
-   When a new stream is detected, the current YouTube
-   like count becomes the starting baseline.
+   The total likes on the video when the stream is first
+   detected become the baseline.
 
    Example:
 
-   YouTube video currently has 127 likes
-   Stream starts/detected
+   Video has 127 likes when detected
    Baseline = 127
 
-   Later YouTube has 132 likes
-
-   Stream likes = 132 - 127
-                = 5
+   Later video has 132 likes
+   Stream likes = 132 - 127 = 5
 */
 
 let likeBaseline = null;
@@ -97,12 +83,11 @@ let likeCache = {
    ========================================================= */
 
 /*
-   OBS can request the server every second.
+   OBS can request the API every second.
 
-   The server itself only contacts YouTube every
-   30 seconds.
+   Render only contacts YouTube every 30 seconds.
 
-   This prevents unnecessary YouTube API requests.
+   This prevents unnecessary API requests.
 */
 
 const YOUTUBE_CACHE_TIME = 30000;
@@ -123,7 +108,8 @@ function getAuthenticatedClient() {
     }
 
     oauth2Client.setCredentials({
-        refresh_token: YOUTUBE_REFRESH_TOKEN
+        refresh_token:
+            YOUTUBE_REFRESH_TOKEN
     });
 
     return oauth2Client;
@@ -135,8 +121,6 @@ function getAuthenticatedClient() {
    ========================================================= */
 
 /*
-   Examples:
-
    0   -> 50
    49  -> 50
    50  -> 100
@@ -147,10 +131,14 @@ function getAuthenticatedClient() {
    150 -> 200
 */
 
-function calculateSubscriberGoal(subscribers) {
+function calculateSubscriberGoal(
+    subscribers
+) {
 
     return (
-        Math.floor(subscribers / 50) + 1
+        Math.floor(
+            subscribers / 50
+        ) + 1
     ) * 50;
 
 }
@@ -161,8 +149,6 @@ function calculateSubscriberGoal(subscribers) {
    ========================================================= */
 
 /*
-   Examples:
-
    0  -> 5
    1  -> 5
    4  -> 5
@@ -171,10 +157,14 @@ function calculateSubscriberGoal(subscribers) {
    10 -> 15
 */
 
-function calculateLikeGoal(likes) {
+function calculateLikeGoal(
+    likes
+) {
 
     return (
-        Math.floor(likes / 5) + 1
+        Math.floor(
+            likes / 5
+        ) + 1
     ) * 5;
 
 }
@@ -228,19 +218,15 @@ app.get("/overlay", (req, res) => {
    ========================================================= */
 
 /*
-   Uses OAuth to ask YouTube:
-
-   "Is MY channel currently live?"
+   Uses the authenticated YouTube account.
 
    broadcastStatus = active
    mine = true
 
-   This means we no longer need:
+   This automatically finds the stream belonging
+   to the authorized YouTube channel.
 
-   YOUTUBE_VIDEO_ID
-
-   The authenticated YouTube account determines
-   the active broadcast automatically.
+   No YOUTUBE_VIDEO_ID is required.
 */
 
 async function findActiveBroadcast() {
@@ -291,7 +277,7 @@ async function findActiveBroadcast() {
 
 
     /*
-       No active livestream
+       No active stream
     */
 
     if (
@@ -302,10 +288,6 @@ async function findActiveBroadcast() {
 
     }
 
-
-    /*
-       Get the first active broadcast
-    */
 
     const broadcast =
         items[0];
@@ -328,62 +310,74 @@ async function findActiveBroadcast() {
    FETCH SUBSCRIBERS
    ========================================================= */
 
+/*
+   IMPORTANT:
+
+   This uses OAuth instead of an API key.
+
+   channels.list + mine=true returns the
+   authenticated user's YouTube channel.
+
+   Therefore:
+
+   YOUTUBE_API_KEY       -> NOT NEEDED
+   YOUTUBE_CHANNEL_ID    -> NOT NEEDED
+*/
+
 async function fetchSubscribers() {
 
-    const url =
-        "https://www.googleapis.com/youtube/v3/channels" +
-
-        "?part=statistics" +
-
-        "&id=" +
-        encodeURIComponent(
-            YOUTUBE_CHANNEL_ID
-        ) +
-
-        "&key=" +
-        encodeURIComponent(
-            YOUTUBE_API_KEY
-        );
+    const client =
+        getAuthenticatedClient();
 
 
-    const response =
-        await fetch(url);
-
-
-    const data =
-        await response.json();
-
-
-    if (!response.ok) {
-
-        console.error(
-            "YouTube subscriber API response:",
-            data
-        );
+    if (!client) {
 
         throw new Error(
-            "YouTube subscriber API failed"
+            "YouTube OAuth is not configured"
         );
 
     }
 
 
+    const youtube =
+        google.youtube({
+            version: "v3",
+            auth: client
+        });
+
+
+    const response =
+        await youtube.channels.list({
+
+            part: [
+                "statistics"
+            ],
+
+            mine:
+                true
+
+        });
+
+
+    const items =
+        response.data.items || [];
+
+
     if (
-        !data.items ||
-        data.items.length === 0
+        items.length === 0
     ) {
 
         throw new Error(
-            "YouTube channel not found"
+            "Authenticated YouTube channel not found"
         );
 
     }
 
 
     return Number(
-        data.items[0]
+        items[0]
             .statistics
-            .subscriberCount
+            .subscriberCount || 0
     );
 
 }
@@ -393,51 +387,54 @@ async function fetchSubscribers() {
    FETCH VIDEO LIKES
    ========================================================= */
 
+/*
+   Uses OAuth instead of an API key.
+*/
+
 async function fetchVideoLikes(
     videoId
 ) {
 
-    const url =
-        "https://www.googleapis.com/youtube/v3/videos" +
-
-        "?part=statistics" +
-
-        "&id=" +
-        encodeURIComponent(
-            videoId
-        ) +
-
-        "&key=" +
-        encodeURIComponent(
-            YOUTUBE_API_KEY
-        );
+    const client =
+        getAuthenticatedClient();
 
 
-    const response =
-        await fetch(url);
-
-
-    const data =
-        await response.json();
-
-
-    if (!response.ok) {
-
-        console.error(
-            "YouTube video API response:",
-            data
-        );
+    if (!client) {
 
         throw new Error(
-            "YouTube video API failed"
+            "YouTube OAuth is not configured"
         );
 
     }
 
 
+    const youtube =
+        google.youtube({
+            version: "v3",
+            auth: client
+        });
+
+
+    const response =
+        await youtube.videos.list({
+
+            part: [
+                "statistics"
+            ],
+
+            id: [
+                videoId
+            ]
+
+        });
+
+
+    const items =
+        response.data.items || [];
+
+
     if (
-        !data.items ||
-        data.items.length === 0
+        items.length === 0
     ) {
 
         throw new Error(
@@ -448,7 +445,7 @@ async function fetchVideoLikes(
 
 
     return Number(
-        data.items[0]
+        items[0]
             .statistics
             .likeCount || 0
     );
@@ -465,7 +462,7 @@ async function refreshYouTubeData() {
     try {
 
         /* =================================================
-           1. SUBSCRIBERS
+           1. FETCH SUBSCRIBERS
            ================================================= */
 
         const subscribers =
@@ -498,7 +495,7 @@ async function refreshYouTubeData() {
         if (!broadcast) {
 
             /*
-               Nobody is currently live.
+               Nobody is live.
 
                Reset stream-specific data.
             */
@@ -539,7 +536,7 @@ async function refreshYouTubeData() {
 
 
             /*
-               Save the new video ID.
+               Save the new stream's video ID.
             */
 
             activeVideoId =
@@ -549,8 +546,7 @@ async function refreshYouTubeData() {
             /*
                Get the current total likes.
 
-               These become the baseline for
-               this stream.
+               This becomes the baseline.
             */
 
             const startingLikes =
@@ -564,7 +560,7 @@ async function refreshYouTubeData() {
 
 
             /*
-               A new stream always starts at:
+               Every new stream starts at:
 
                0 / 5
             */
@@ -601,15 +597,7 @@ async function refreshYouTubeData() {
 
 
         /*
-           Calculate likes gained during
-           this stream.
-
-           Example:
-
-           Baseline = 100
-           Current  = 107
-
-           Stream likes = 7
+           Calculate likes gained during this stream.
         */
 
         const streamLikes =
@@ -654,8 +642,8 @@ app.get(
         try {
 
             /*
-               Only contact YouTube when
-               the cache is older than 30 seconds.
+               Refresh only when cache is older
+               than 30 seconds.
             */
 
             if (
@@ -727,8 +715,8 @@ app.get(
         try {
 
             /*
-               Refresh YouTube data when
-               the cache is older than 30 seconds.
+               Refresh only when cache is older
+               than 30 seconds.
             */
 
             if (
