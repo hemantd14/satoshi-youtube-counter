@@ -18,81 +18,107 @@
         font-family: Arial, Helvetica, sans-serif;
     }
 
+    /* Transparent OBS canvas */
     .container {
         width: 100%;
         height: 100%;
-
         display: flex;
         align-items: center;
         justify-content: center;
     }
 
-    .card {
-        min-width: 520px;
-
-        padding: 18px 35px;
-
-        border-radius: 18px;
-
-        background:
-            linear-gradient(
-                135deg,
-                rgba(8, 12, 25, 0.96),
-                rgba(35, 20, 60, 0.96)
-            );
-
-        border: 2px solid rgba(255,255,255,0.75);
-
-        box-shadow:
-            0 0 25px rgba(100,100,255,0.5),
-            inset 0 0 20px rgba(255,255,255,0.04);
-
-        color: white;
-
-        text-align: center;
+    /* Everything is stacked vertically */
+    .stack {
+        width: 420px;
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
     }
 
-    .brand {
-        font-size: 22px;
-        font-weight: 800;
-        letter-spacing: 3px;
-        text-transform: uppercase;
+    .card {
+        width: 100%;
+        padding: 18px 24px 20px;
+
+        background: rgba(0, 0, 0, 0.58);
+
+        border: 2px solid rgba(255, 255, 255, 0.88);
+        border-radius: 16px;
+
+        color: #ffffff;
+        text-align: center;
+
+        box-shadow:
+            0 5px 18px rgba(0, 0, 0, 0.35),
+            inset 0 0 12px rgba(255, 255, 255, 0.035);
+    }
+
+    .header {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+
+        font-size: 18px;
+        font-weight: 900;
+        letter-spacing: 2px;
+        line-height: 1.15;
+    }
+
+    .youtube-icon {
+        width: 30px;
+        height: 21px;
+        border-radius: 6px;
+        background: #ff0000;
+
+        position: relative;
+        flex: 0 0 auto;
+    }
+
+    .youtube-icon::after {
+        content: "";
+        position: absolute;
+        left: 12px;
+        top: 5px;
+
+        border-left: 9px solid #ffffff;
+        border-top: 5.5px solid transparent;
+        border-bottom: 5.5px solid transparent;
     }
 
     .label {
-        margin-top: 5px;
+        margin-top: 7px;
 
-        font-size: 13px;
-        font-weight: 600;
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 3px;
 
-        letter-spacing: 4px;
-
-        opacity: 0.65;
+        opacity: 0.62;
     }
 
     .count {
-        margin-top: 7px;
+        margin-top: 5px;
 
-        font-size: 60px;
+        font-size: 58px;
         line-height: 1;
 
         font-weight: 900;
-
-        letter-spacing: 2px;
+        letter-spacing: 1px;
 
         text-shadow:
-            0 0 10px rgba(130,150,255,0.8),
-            0 0 25px rgba(100,100,255,0.4);
+            0 2px 5px rgba(0, 0, 0, 0.75),
+            0 0 14px rgba(255, 255, 255, 0.18);
+
+        white-space: nowrap;
     }
 
     .status {
-        margin-top: 10px;
+        margin-top: 9px;
 
-        font-size: 10px;
+        font-size: 9px;
+        font-weight: 600;
+        letter-spacing: 1.5px;
 
-        letter-spacing: 2px;
-
-        opacity: 0.45;
+        opacity: 0.42;
     }
 
     .pulse {
@@ -100,51 +126,64 @@
     }
 
     @keyframes pulse {
-
-        0% {
-            transform: scale(1);
-        }
-
-        40% {
-            transform: scale(1.12);
-        }
-
-        100% {
-            transform: scale(1);
-        }
-
+        0%   { transform: scale(1); }
+        40%  { transform: scale(1.08); }
+        100% { transform: scale(1); }
     }
 </style>
-
 </head>
 
 <body>
 
 <div class="container">
 
-    <div class="card">
+    <div class="stack">
 
-        <div class="brand">
-            SATOSHI'S FRANCHISE
+        <!-- =========================================
+             YOUTUBE SUBSCRIBER CARD
+             ========================================= -->
+
+        <div class="card">
+
+            <div class="header">
+                <span class="youtube-icon"></span>
+                <span>YOUTUBE SUBSCRIBERS</span>
+            </div>
+
+            <div id="count" class="count">---</div>
+
+            <div id="subscriberStatus" class="status">
+                CONNECTING...
+            </div>
+
         </div>
 
-        <div class="label">
-            YOUTUBE SUBSCRIBERS
+
+        <!-- =========================================
+             RAZORPAY SUPPORT CARD - DISABLED FOR NOW
+             
+             Kept here for future use.
+             ========================================= -->
+
+        <!--
+
+        <div class="card">
+
+            <div class="header">
+                <span class="heart">♥</span>
+                <span>SUPPORT</span>
+            </div>
+
+            <div id="amount" class="amount">₹0</div>
+
+            <div id="supportStatus" class="status">
+                CONNECTING...
+            </div>
+
         </div>
 
-        <div
-            id="count"
-            class="count"
-        >
-            ---
-        </div>
+        -->
 
-        <div
-            id="status"
-            class="status"
-        >
-            CONNECTING...
-        </div>
 
     </div>
 
@@ -154,25 +193,45 @@
 <script>
 
 /* =========================================
-   PUT YOUR RENDER API URL HERE
+   YOUTUBE API ENDPOINT
    ========================================= */
 
-const API_URL =
+const SUBSCRIBER_API =
     "/api/youtube/subscribers";
+
+
+/* =========================================
+   RAZORPAY API ENDPOINT - DISABLED
+   ========================================= */
+
+/*
+const SUPPORT_API =
+    "/api/razorpay/total";
+*/
 
 
 /* =========================================
    SETTINGS
    ========================================= */
 
-const REFRESH_INTERVAL = 1000; // 1 second
+const SUBSCRIBER_REFRESH_INTERVAL = 30000;
+
+
+/*
+const SUPPORT_REFRESH_INTERVAL = 15000;
+*/
 
 
 let previousCount = null;
 
 
+/*
+let previousAmount = null;
+*/
+
+
 /* =========================================
-   UPDATE SUBSCRIBER COUNT
+   YOUTUBE SUBSCRIBERS
    ========================================= */
 
 async function updateSubscribers() {
@@ -180,7 +239,7 @@ async function updateSubscribers() {
     try {
 
         const response = await fetch(
-            API_URL + "?t=" + Date.now(),
+            SUBSCRIBER_API + "?t=" + Date.now(),
             {
                 cache: "no-store"
             }
@@ -214,35 +273,27 @@ async function updateSubscribers() {
             document.getElementById("count");
 
 
-        const formatted =
-            data.subscribers.toLocaleString("en-IN");
-
-
         countElement.textContent =
-            formatted + "/100";
+            data.subscribers.toLocaleString("en-IN") + "/100";
 
 
-        document.getElementById("status")
+        document.getElementById("subscriberStatus")
             .textContent =
-            "LIVE • UPDATES EVERY SECONDS";
+            "LIVE • UPDATES EVERY 30 SECONDS";
 
 
-        /* Animate when number changes */
+        /* Animate when subscriber count changes */
 
         if (
             previousCount !== null &&
             data.subscribers !== previousCount
         ) {
 
-            countElement.classList.remove(
-                "pulse"
-            );
+            countElement.classList.remove("pulse");
 
             void countElement.offsetWidth;
 
-            countElement.classList.add(
-                "pulse"
-            );
+            countElement.classList.add("pulse");
 
         }
 
@@ -259,7 +310,7 @@ async function updateSubscribers() {
         );
 
 
-        document.getElementById("status")
+        document.getElementById("subscriberStatus")
             .textContent =
             "CONNECTION ERROR";
 
@@ -269,16 +320,133 @@ async function updateSubscribers() {
 
 
 /* =========================================
+   RAZORPAY SUPPORT TOTAL - DISABLED
+   ========================================= */
+
+/*
+
+async function updateSupportAmount() {
+
+    try {
+
+        const response = await fetch(
+            SUPPORT_API + "?t=" + Date.now(),
+            {
+                cache: "no-store"
+            }
+        );
+
+
+        if (!response.ok) {
+
+            throw new Error(
+                "Server returned " + response.status
+            );
+
+        }
+
+
+        const data =
+            await response.json();
+
+
+        const rawAmount =
+            data.total !== undefined
+                ? data.total
+                : data.amount;
+
+
+        const amount =
+            Number(rawAmount);
+
+
+        if (!Number.isFinite(amount)) {
+
+            throw new Error(
+                "Invalid support amount"
+            );
+
+        }
+
+
+        const amountElement =
+            document.getElementById("amount");
+
+
+        amountElement.textContent =
+            "₹" + amount.toLocaleString("en-IN");
+
+
+        document.getElementById("supportStatus")
+            .textContent =
+            "LIVE • SUPPORT TOTAL";
+
+
+        if (
+            previousAmount !== null &&
+            amount !== previousAmount
+        ) {
+
+            amountElement.classList.remove("pulse");
+
+            void amountElement.offsetWidth;
+
+            amountElement.classList.add("pulse");
+
+        }
+
+
+        previousAmount =
+            amount;
+
+
+    } catch (error) {
+
+        console.error(
+            "Support total error:",
+            error
+        );
+
+
+        document.getElementById("supportStatus")
+            .textContent =
+            "WAITING FOR PAYMENT DATA";
+
+    }
+
+}
+
+*/
+
+
+/* =========================================
    START
    ========================================= */
 
 updateSubscribers();
 
 
+/*
+updateSupportAmount();
+*/
+
+
+/* =========================================
+   REFRESH TIMERS
+   ========================================= */
+
 setInterval(
     updateSubscribers,
-    REFRESH_INTERVAL
+    SUBSCRIBER_REFRESH_INTERVAL
 );
+
+
+/*
+setInterval(
+    updateSupportAmount,
+    SUPPORT_REFRESH_INTERVAL
+);
+*/
 
 </script>
 
