@@ -3,310 +3,301 @@
 
 <head>
 
-<meta charset="UTF-8">
+    <meta charset="UTF-8">
 
-<meta
-    name="viewport"
-    content="width=device-width, initial-scale=1.0"
->
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
 
+    <style>
 
-<style>
+        * {
+            box-sizing: border-box;
+        }
 
-* {
-    box-sizing: border-box;
-}
 
+        html,
+        body {
 
-html,
-body {
+            margin: 0;
 
-    margin: 0;
+            width: 100%;
+            height: 100%;
 
-    width: 100%;
-    height: 100%;
+            background: transparent;
 
-    background: transparent;
+            overflow: hidden;
 
-    overflow: hidden;
+            font-family:
+                Arial,
+                Helvetica,
+                sans-serif;
 
-    font-family:
-        Arial,
-        Helvetica,
-        sans-serif;
-}
+        }
 
 
-/* =========================================
-   MAIN CONTAINER
-   ========================================= */
+        /* =========================================
+           MAIN CONTAINER
+           ========================================= */
 
-.container {
+        .container {
 
-    width: 100%;
-    height: 100%;
+            width: 100%;
+            height: 100%;
 
-    display: flex;
+            display: flex;
 
-    align-items: center;
-    justify-content: center;
+            align-items: center;
+            justify-content: center;
 
-}
+        }
 
 
-.stack {
+        /* =========================================
+           STACK
+           ========================================= */
 
-    width: 420px;
+        .stack {
 
-    display: flex;
+            width: 420px;
 
-    flex-direction: column;
+            display: flex;
 
-    gap: 14px;
+            flex-direction: column;
 
-}
+            gap: 14px;
 
+        }
 
-/* =========================================
-   CARD
-   ========================================= */
 
-.card {
+        /* =========================================
+           CARD
+           ========================================= */
 
-    width: 100%;
+        .card {
 
-    padding:
-        18px
-        24px
-        20px;
+            width: 100%;
 
-    background:
-        rgba(0, 0, 0, 0.58);
+            padding:
+                18px
+                24px
+                20px;
 
-    border:
-        2px solid
-        rgba(255, 255, 255, 0.88);
+            background:
+                rgba(0, 0, 0, 0.58);
 
-    border-radius: 16px;
+            border:
+                2px solid
+                rgba(255, 255, 255, 0.88);
 
-    color: #ffffff;
+            border-radius: 16px;
 
-    text-align: center;
+            color: #ffffff;
 
-    box-shadow:
+            text-align: center;
 
-        0 5px 18px
-        rgba(0, 0, 0, 0.35),
+            box-shadow:
 
-        inset 0 0 12px
-        rgba(255, 255, 255, 0.035);
+                0 5px 18px
+                rgba(0, 0, 0, 0.35),
 
-}
+                inset 0 0 12px
+                rgba(255, 255, 255, 0.035);
 
+        }
 
-/* =========================================
-   HEADER
-   ========================================= */
 
-.header {
+        /* =========================================
+           HEADER
+           ========================================= */
 
-    display: flex;
+        .header {
 
-    align-items: center;
+            display: flex;
 
-    justify-content: center;
+            align-items: center;
 
-    gap: 10px;
+            justify-content: center;
 
-    font-size: 18px;
+            gap: 10px;
 
-    font-weight: 900;
+            font-size: 18px;
 
-    letter-spacing: 2px;
+            font-weight: 900;
 
-    line-height: 1.15;
+            letter-spacing: 2px;
 
-}
+            line-height: 1.15;
 
+        }
 
-/* =========================================
-   YOUTUBE ICON
-   ========================================= */
 
-.youtube-icon {
+        /* =========================================
+           YOUTUBE ICON
+           ========================================= */
 
-    width: 30px;
-    height: 21px;
+        .youtube-icon {
 
-    border-radius: 6px;
+            width: 30px;
+            height: 21px;
 
-    background: #ff0000;
+            border-radius: 6px;
 
-    position: relative;
+            background: #ff0000;
 
-    flex: 0 0 auto;
+            position: relative;
 
-}
+            flex: 0 0 auto;
 
+        }
 
-.youtube-icon::after {
 
-    content: "";
+        .youtube-icon::after {
 
-    position: absolute;
+            content: "";
 
-    left: 12px;
-    top: 5px;
+            position: absolute;
 
-    border-left:
-        9px solid #ffffff;
+            left: 12px;
+            top: 5px;
 
-    border-top:
-        5.5px solid transparent;
+            border-left:
+                9px solid #ffffff;
 
-    border-bottom:
-        5.5px solid transparent;
+            border-top:
+                5.5px solid transparent;
 
-}
+            border-bottom:
+                5.5px solid transparent;
 
+        }
 
-/* =========================================
-   LIKE ICON
-   ========================================= */
 
-.like-icon {
+        /* =========================================
+           COUNT
+           ========================================= */
 
-    font-size: 25px;
+        .count {
 
-    line-height: 1;
+            margin-top: 8px;
 
-}
+            font-size: 58px;
 
+            line-height: 1;
 
-/* =========================================
-   COUNT
-   ========================================= */
+            font-weight: 900;
 
-.count {
+            letter-spacing: 1px;
 
-    margin-top: 8px;
+            text-shadow:
 
-    font-size: 58px;
+                0 2px 5px
+                rgba(0, 0, 0, 0.75),
 
-    line-height: 1;
+                0 0 14px
+                rgba(255, 255, 255, 0.18);
 
-    font-weight: 900;
+            white-space: nowrap;
 
-    letter-spacing: 1px;
+        }
 
-    text-shadow:
 
-        0 2px 5px
-        rgba(0, 0, 0, 0.75),
+        /* =========================================
+           STATUS
+           ========================================= */
 
-        0 0 14px
-        rgba(255, 255, 255, 0.18);
+        .status {
 
-    white-space: nowrap;
+            margin-top: 9px;
 
-}
+            font-size: 9px;
 
+            font-weight: 600;
 
-/* =========================================
-   STATUS
-   ========================================= */
+            letter-spacing: 1.5px;
 
-.status {
+            opacity: 0.42;
 
-    margin-top: 9px;
+        }
 
-    font-size: 9px;
 
-    font-weight: 600;
+        /* =========================================
+           ANIMATION
+           ========================================= */
 
-    letter-spacing: 1.5px;
+        .pulse {
 
-    opacity: 0.42;
+            animation:
+                pulse 0.5s ease;
 
-}
+        }
 
 
-/* =========================================
-   ANIMATION
-   ========================================= */
+        @keyframes pulse {
 
-.pulse {
+            0% {
 
-    animation:
-        pulse 0.5s ease;
+                transform:
+                    scale(1);
 
-}
+            }
 
+            40% {
 
-@keyframes pulse {
+                transform:
+                    scale(1.08);
 
-    0% {
+            }
 
-        transform:
-            scale(1);
+            100% {
 
-    }
+                transform:
+                    scale(1);
 
-    40% {
+            }
 
-        transform:
-            scale(1.08);
+        }
 
-    }
 
-    100% {
+        /* =========================================
+           GOAL COMPLETE
+           ========================================= */
 
-        transform:
-            scale(1);
+        .goalComplete {
 
-    }
+            animation:
+                goalComplete 0.8s ease;
 
-}
+        }
 
 
-/* =========================================
-   GOAL COMPLETE
-   ========================================= */
+        @keyframes goalComplete {
 
-.goalComplete {
+            0% {
 
-    animation:
-        goalComplete 0.8s ease;
+                transform:
+                    scale(1);
 
-}
+            }
 
+            50% {
 
-@keyframes goalComplete {
+                transform:
+                    scale(1.15);
 
-    0% {
+            }
 
-        transform:
-            scale(1);
+            100% {
 
-    }
+                transform:
+                    scale(1);
 
-    50% {
+            }
 
-        transform:
-            scale(1.15);
+        }
 
-    }
-
-    100% {
-
-        transform:
-            scale(1);
-
-    }
-
-}
-
-</style>
+    </style>
 
 </head>
 
@@ -314,406 +305,224 @@ body {
 <body>
 
 
-<div class="container">
+    <div class="container">
+
+        <div class="stack">
 
 
-<div class="stack">
+            <!-- =========================================
+                 SUBSCRIBER CARD
+                 ========================================= -->
+
+            <div class="card">
+
+                <div class="header">
+
+                    <span class="youtube-icon"></span>
+
+                    <span>
+                        YOUTUBE SUBSCRIBERS
+                    </span>
+
+                </div>
 
 
-<!-- =========================================
-     SUBSCRIBER CARD
-     ========================================= -->
+                <div
+                    id="subscriberCount"
+                    class="count"
+                >
 
-<div class="card">
+                    ---
 
-
-    <div class="header">
-
-        <span class="youtube-icon"></span>
-
-        <span>
-            YOUTUBE SUBSCRIBERS
-        </span>
-
-    </div>
+                </div>
 
 
-    <div
-        id="subscriberCount"
-        class="count"
-    >
+                <div
+                    id="subscriberStatus"
+                    class="status"
+                >
 
-        ---
+                    CONNECTING...
 
-    </div>
+                </div>
 
-
-    <div
-        id="subscriberStatus"
-        class="status"
-    >
-
-        CONNECTING...
-
-    </div>
+            </div>
 
 
-</div>
-
-
-
-<!-- =========================================
-     LIKE CARD
-     ========================================= -->
-
-<div class="card">
-
-
-    <div class="header">
-
-        <span class="like-icon">
-            👍
-        </span>
-
-        <span>
-            STREAM LIKES
-        </span>
+        </div>
 
     </div>
 
 
-    <div
-        id="likeCount"
-        class="count"
-    >
 
-        ---
-
-    </div>
+    <script>
 
 
-    <div
-        id="likeStatus"
-        class="status"
-    >
+        /* =========================================
+           API
+           ========================================= */
 
-        CONNECTING...
-
-    </div>
+        const SUBSCRIBER_API =
+            "/api/youtube/subscribers";
 
 
-</div>
+        /* =========================================
+           OBS REFRESH
+           ========================================= */
+
+        /*
+           OBS can refresh the Render endpoint
+           every second.
+
+           Render returns cached subscriber data.
+
+           The Render server itself only contacts
+           YouTube once every 60 seconds.
+        */
+
+        const REFRESH_INTERVAL =
+            1000;
 
 
-
-</div>
-
-
-</div>
+        let previousSubscribers =
+            null;
 
 
+        /* =========================================
+           SUBSCRIBERS
+           ========================================= */
 
-<script>
+        async function updateSubscribers() {
 
+            try {
 
-/* =========================================
-   API
-   ========================================= */
-
-const SUBSCRIBER_API =
-    "/api/youtube/subscribers";
-
-const LIKE_API =
-    "/api/youtube/likes";
-
-
-/* =========================================
-   OBS REFRESH
-   ========================================= */
-
-/*
-   OBS can refresh every second.
-
-   Render will NOT call YouTube every second.
-   The server will cache the YouTube data.
-*/
-
-const REFRESH_INTERVAL =
-    1000;
+                const response =
+                    await fetch(
+                        SUBSCRIBER_API +
+                        "?t=" +
+                        Date.now(),
+                        {
+                            cache:
+                                "no-store"
+                        }
+                    );
 
 
-let previousSubscribers =
-    null;
+                if (!response.ok) {
 
+                    throw new Error(
+                        "Server returned " +
+                        response.status
+                    );
 
-let previousLikes =
-    null;
-
-
-/* =========================================
-   SUBSCRIBERS
-   ========================================= */
-
-async function updateSubscribers() {
-
-    try {
-
-        const response =
-            await fetch(
-                SUBSCRIBER_API +
-                "?t=" +
-                Date.now(),
-                {
-                    cache:
-                        "no-store"
                 }
-            );
 
 
-        if (!response.ok) {
+                const data =
+                    await response.json();
 
-            throw new Error(
-                "Server returned " +
-                response.status
-            );
+
+                if (
+                    typeof data.subscribers !==
+                    "number"
+                ) {
+
+                    throw new Error(
+                        "Invalid subscriber data"
+                    );
+
+                }
+
+
+                const count =
+                    data.subscribers;
+
+
+                const goal =
+                    data.subscriberGoal;
+
+
+                const element =
+                    document.getElementById(
+                        "subscriberCount"
+                    );
+
+
+                element.textContent =
+                    count
+                    .toLocaleString("en-IN")
+                    + "/"
+                    + goal;
+
+
+                document.getElementById(
+                    "subscriberStatus"
+                ).textContent =
+                    "LIVE • SUBSCRIBER GOAL";
+
+
+                /* =========================================
+                   COUNT CHANGE ANIMATION
+                   ========================================= */
+
+                if (
+                    previousSubscribers !== null &&
+                    count !== previousSubscribers
+                ) {
+
+                    element.classList.remove(
+                        "pulse"
+                    );
+
+                    void element.offsetWidth;
+
+                    element.classList.add(
+                        "pulse"
+                    );
+
+                }
+
+
+                previousSubscribers =
+                    count;
+
+
+            } catch (error) {
+
+                console.error(
+                    "Subscriber error:",
+                    error
+                );
+
+
+                document.getElementById(
+                    "subscriberStatus"
+                ).textContent =
+                    "CONNECTION ERROR";
+
+            }
 
         }
 
 
-        const data =
-            await response.json();
+        /* =========================================
+           INITIAL LOAD
+           ========================================= */
+
+        updateSubscribers();
 
 
-        if (
-            typeof data.subscribers !==
-            "number"
-        ) {
+        /* =========================================
+           REFRESH
+           ========================================= */
 
-            throw new Error(
-                "Invalid subscriber data"
-            );
-
-        }
-
-
-        const count =
-            data.subscribers;
-
-
-        const goal =
-            data.subscriberGoal;
-
-
-        const element =
-            document.getElementById(
-                "subscriberCount"
-            );
-
-
-        element.textContent =
-            count
-            .toLocaleString("en-IN")
-            + "/"
-            + goal;
-
-
-        document.getElementById(
-            "subscriberStatus"
-        ).textContent =
-            "LIVE • SUBSCRIBER GOAL";
-
-
-        if (
-            previousSubscribers !== null &&
-            count !== previousSubscribers
-        ) {
-
-            element.classList.remove(
-                "pulse"
-            );
-
-            void element.offsetWidth;
-
-            element.classList.add(
-                "pulse"
-            );
-
-        }
-
-
-        previousSubscribers =
-            count;
-
-
-    } catch (error) {
-
-        console.error(
-            "Subscriber error:",
-            error
+        setInterval(
+            updateSubscribers,
+            REFRESH_INTERVAL
         );
 
 
-        document.getElementById(
-            "subscriberStatus"
-        ).textContent =
-            "CONNECTION ERROR";
-
-    }
-
-}
-
-
-
-/* =========================================
-   LIKES
-   ========================================= */
-
-async function updateLikes() {
-
-    try {
-
-        const response =
-            await fetch(
-                LIKE_API +
-                "?t=" +
-                Date.now(),
-                {
-                    cache:
-                        "no-store"
-                }
-            );
-
-
-        if (!response.ok) {
-
-            throw new Error(
-                "Server returned " +
-                response.status
-            );
-
-        }
-
-
-        const data =
-            await response.json();
-
-
-        if (
-            typeof data.likes !==
-            "number"
-        ) {
-
-            throw new Error(
-                "Invalid like data"
-            );
-
-        }
-
-
-        const likes =
-            data.likes;
-
-
-        const goal =
-            data.likeGoal;
-
-
-        const element =
-            document.getElementById(
-                "likeCount"
-            );
-
-
-        element.textContent =
-            likes
-            + "/"
-            + goal;
-
-
-        document.getElementById(
-            "likeStatus"
-        ).textContent =
-            "LIVE • STREAM LIKE GOAL";
-
-
-        if (
-            previousLikes !== null &&
-            likes !== previousLikes
-        ) {
-
-            element.classList.remove(
-                "pulse"
-            );
-
-            void element.offsetWidth;
-
-            element.classList.add(
-                "pulse"
-            );
-
-        }
-
-
-        previousLikes =
-            likes;
-
-
-    } catch (error) {
-
-        console.error(
-            "Like error:",
-            error
-        );
-
-
-        document.getElementById(
-            "likeStatus"
-        ).textContent =
-            "WAITING FOR LIVE DATA";
-
-    }
-
-}
-
-
-
-/* =========================================
-   START
-   ========================================= */
-
-updateSubscribers();
-
-updateLikes();
-
-
-/* =========================================
-   REFRESH
-   ========================================= */
-
-setInterval(
-    updateSubscribers,
-    REFRESH_INTERVAL
-);
-
-
-setInterval(
-    updateLikes,
-    REFRESH_INTERVAL
-);
-
-
-/* =========================================
-   RAZORPAY REMAINS DISABLED
-   ========================================= */
-
-/*
-
-Razorpay support code intentionally
-remains disabled for now.
-
-*/
-
-</script>
+    </script>
 
 
 </body>
